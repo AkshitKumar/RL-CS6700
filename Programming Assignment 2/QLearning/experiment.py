@@ -16,7 +16,7 @@ def offlineDemo():
         this_score = evaluateAgent()
         printScore((i + 1) * 25, this_score)
         statistics.append(this_score)
-        RLGlue.RL_agent_message("decay-epsilon")
+        #RLGlue.RL_agent_message("decay-epsilon")
 
     saveResultToCSV(statistics, "results.csv")
 

@@ -47,7 +47,7 @@ class q_learning_agent(Agent):
 		self.lastObservation=Observation()
 
 	def egreedy(self,state):
-		if not self.exploringFrozen and random.uniform(0,1) < self.q_learning_epsilon:
+		if not self.exploringFrozen and random.uniform(0,1) < max(self.q_learning_epsilon,0.1):
 			return self.randGenerator.randint(0,self.numActions - 1)
 		return self.value_function[state].index(max(self.value_function[state]))
 
@@ -132,13 +132,19 @@ class q_learning_agent(Agent):
 			self.q_learning_epsilon = 1.0
 
 		if inMessage.startswith("decay-epsilon"):
-			self.q_learning_epsilon -= 0.04
+			self.q_learning_epsilon -= 1/20.0
 			print self.q_learning_epsilon
+
+		if inMessage.startswith("set-epsilon"):
+			splitString=inMessage.split(" ");
+			self.q_learning_epsilon = float(splitString[1]);
+			print "Saved."
+			return "message understood, saving policy"
 
 		if inMessage.startswith("save_policy"):
 			splitString=inMessage.split(" ");
 			self.save_value_function(splitString[1]);
-			print "Saved.";
+			print "Saved."
 			return "message understood, saving policy"
 
 		if inMessage.startswith("load_policy"):
