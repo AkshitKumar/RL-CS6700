@@ -138,13 +138,11 @@ class q_learning_agent(Agent):
 		if inMessage.startswith("set-epsilon"):
 			splitString=inMessage.split(" ");
 			self.q_learning_epsilon = float(splitString[1]);
-			print "Saved."
-			return "message understood, saving policy"
 
 		if inMessage.startswith("save_policy"):
 			splitString=inMessage.split(" ");
 			self.save_value_function(splitString[1]);
-			print "Saved."
+			print "Value Function Saved."
 			return "message understood, saving policy"
 
 		if inMessage.startswith("load_policy"):

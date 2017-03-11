@@ -22,6 +22,9 @@ class puddle_world_environment(Environment):
 	startRow = 6
 	startCol = 1
 	print_state_flag = False
+	num_steps = 0
+	Return = 0
+	gamma = 0.9
 	
 	def env_init(self):
 		self.map = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -48,6 +51,7 @@ class puddle_world_environment(Environment):
 		returnObs = Observation()
 		returnObs.intArray = [self.calculateFlatState()]
 		self.count_to_goal = 0
+		self.Return = 0
 		return returnObs
 		
 	def env_step(self,thisAction):
@@ -64,6 +68,7 @@ class puddle_world_environment(Environment):
 		returnRO.r = self.calculateReward()
 		returnRO.o = theObs
 		returnRO.terminal = self.checkCurrentTerminal()
+		self.Return += pow(self.gamma,self.count_to_goal) * self.calculateReward()
 		self.count_to_goal += 1
 		return returnRO
 	
@@ -105,6 +110,12 @@ class puddle_world_environment(Environment):
 		if inMessage.startswith("print-update-state"):
 			self.print_state_flag = True
 			return "Message understood. Printing state in update"
+
+		if inMessage.startswith("Return"):
+			return str(self.Return)
+
+		if inMessage.startswith("num_of_steps"):
+			return str(self.count_to_goal)
 
 
 	def setAgentState(self, row, col):
