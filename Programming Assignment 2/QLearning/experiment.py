@@ -116,7 +116,7 @@ single_evaluation()
 # RLGlue.RL_env_message("print-state")
 # print "Evaluating the agent a few times from a fixed start state of 2,3:\n\t\tMean Return\tStandardDeviation\n-------------------------------------------"
 # single_evaluation()
-# 
+#
 # print "Evaluating the agent again with the random start state:\n\t\tMean Return\tStandardDeviation\n-----------------------------------------------------"
 # RLGlue.RL_env_message("set-random-start-state")
 # single_evaluation()
