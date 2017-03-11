@@ -1,3 +1,25 @@
+# 
+# Copyright (C) 2008, Brian Tanner
+# 
+#http://rl-glue-ext.googlecode.com/
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#  $Revision: 1011 $
+#  $Date: 2009-02-11 22:29:54 -0700 (Wed, 11 Feb 2009) $
+#  $Author: brian@tannerpages.com $
+#  $HeadURL: http://rl-library.googlecode.com/svn/trunk/projects/packages/examples/mines-sarsa-python/sample_sarsa_agent.py $
+
 import random
 import sys
 import copy
@@ -8,20 +30,35 @@ from rlglue.types import Action
 from rlglue.types import Observation
 from rlglue.utils import TaskSpecVRLGLUE3
 from random import Random
-import numpy as np
 
-class sarsa_lambda_agent(Agent):
+
+
+# This is a very simple Sarsa agent for discrete-action, discrete-state
+# environments.  It uses epsilon-greedy exploration.
+# 
+# We've made a decision to store the previous action and observation in 
+# their raw form, as structures.  This code could be simplified and you
+# could store them just as ints.
+
+
+# TO USE THIS Agent [order doesn't matter]
+# NOTE: I'm assuming the Python codec is installed an is in your Python path
+#   -  Start the rl_glue executable socket server on your computer
+#   -  Run the SampleMinesEnvironment and SampleExperiment from this or a
+#   different codec (Matlab, Python, Java, C, Lisp should all be fine)
+#   -  Start this agent like:
+#   $> python sample_sarsa_agent.py
+
+class sarsa_agent(Agent):
 	randGenerator=Random()
 	lastAction=Action()
 	lastObservation=Observation()
 	sarsa_stepsize = 0.1
 	sarsa_epsilon = 0.1
-	sarsa_gamma = 0.9
-	sarsa_lambda = 0.0
+	sarsa_gamma = 1.0
 	numStates = 0
 	numActions = 0
 	value_function = None
-	eligibility_traces = None
 	
 	policyFrozen=False
 	exploringFrozen=False
@@ -40,9 +77,9 @@ class sarsa_lambda_agent(Agent):
 			assert not TaskSpec.isSpecial(TaskSpec.getIntActions()[0][0]), " expecting min action to be a number not a special value"
 			assert not TaskSpec.isSpecial(TaskSpec.getIntActions()[0][1]), " expecting max action to be a number not a special value"
 			self.numActions=TaskSpec.getIntActions()[0][1]+1;
-						
-			self.value_function = np.zeros((self.numStates,self.numActions))
-			self.eligibility_traces = np.zeros((self.numStates,self.numActions))
+			
+			self.value_function=[self.numActions*[0.0] for i in range(self.numStates)]
+
 		else:
 			print "Task Spec could not be parsed: "+taskSpecString;
 			
@@ -50,15 +87,18 @@ class sarsa_lambda_agent(Agent):
 		self.lastObservation=Observation()
 		
 	def egreedy(self, state):
+		#maxIndex=0
+		#a=1
 		if not self.exploringFrozen and self.randGenerator.random()<self.sarsa_epsilon:
 			return self.randGenerator.randint(0,self.numActions-1)
-		return np.argmax(self.value_function[state])
+
+                
+		return self.value_function[state].index(max(self.value_function[state]))
+		
 		
 	
 	def agent_start(self,observation):
 		theState=observation.intArray[0]
-		# Initialize the eligibility traces to 0
-		self.eligibility_traces[:,:] = 0
 		thisIntAction=self.egreedy(theState)
 		returnAction=Action()
 		returnAction.intArray=[thisIntAction]
@@ -75,13 +115,14 @@ class sarsa_lambda_agent(Agent):
 
 		newIntAction=self.egreedy(newState)
 
+		Q_sa=self.value_function[lastState][lastAction]
+		Q_sprime_aprime=self.value_function[newState][newIntAction]
+
+		new_Q_sa=Q_sa + self.sarsa_stepsize * (reward + self.sarsa_gamma * Q_sprime_aprime - Q_sa)
+
+
 		if not self.policyFrozen:
-			Q_sa=self.value_function[lastState][lastAction]
-			Q_sprime_aprime=self.value_function[newState][newIntAction]
-			delta = reward + self.sarsa_gamma * Q_sprime_aprime - Q_sa
-			self.eligibility_traces[lastState][lastAction] += 1
-			self.value_function += self.sarsa_stepsize * delta * self.eligibility_traces
-			self.eligibility_traces = self.sarsa_gamma * self.sarsa_lambda * self.eligibility_traces
+			self.value_function[lastState][lastAction]=new_Q_sa
 
 		returnAction=Action()
 		returnAction.intArray=[newIntAction]
@@ -95,11 +136,13 @@ class sarsa_lambda_agent(Agent):
 		lastState=self.lastObservation.intArray[0]
 		lastAction=self.lastAction.intArray[0]
 
+		Q_sa=self.value_function[lastState][lastAction]
+
+		new_Q_sa=Q_sa + self.sarsa_stepsize * (reward - Q_sa)
+
 		if not self.policyFrozen:
-			Q_sa=self.value_function[lastState][lastAction]
-			delta = reward - Q_sa
-			self.eligibility_traces[lastState][lastAction] += 1
-			self.value_function += self.sarsa_stepsize * delta * self.eligibility_traces
+			self.value_function[lastState][lastAction]=new_Q_sa
+
 	
 	def agent_cleanup(self):
 		pass
@@ -116,7 +159,7 @@ class sarsa_lambda_agent(Agent):
 	
 	def agent_message(self,inMessage):
 		
-		# Message Description
+		#	Message Description
 	 	# 'freeze learning'
 		# Action: Set flag to stop updating policy
 		#
@@ -124,7 +167,7 @@ class sarsa_lambda_agent(Agent):
 			self.policyFrozen=True
 			return "message understood, policy frozen"
 
-		# Message Description
+		#	Message Description
 	 	# unfreeze learning
 	 	# Action: Set flag to resume updating policy
 		#
@@ -132,7 +175,7 @@ class sarsa_lambda_agent(Agent):
 			self.policyFrozen=False
 			return "message understood, policy unfrozen"
 
-		# Message Description
+		#Message Description
 	 	# freeze exploring
 	 	# Action: Set flag to stop exploring (greedy actions only)
 		#
@@ -140,18 +183,13 @@ class sarsa_lambda_agent(Agent):
 			self.exploringFrozen=True
 			return "message understood, exploring frozen"
 
-		# Message Description
+		#Message Description
 	 	# unfreeze exploring
 	 	# Action: Set flag to resume exploring (e-greedy actions)
 		#
 		if inMessage.startswith("unfreeze exploring"):
 			self.exploringFrozen=False
 			return "message understood, exploring frozen"
-
-		if inMessage.startswith("set_lambda"):
-			splitString = inMessage.split(" ")
-			self.sarsa_lambda = float(splitString[1])
-			return "Message understood. Setting the value of lambda"
 
 		#Message Description
 	 	# save_policy FILENAME
@@ -175,9 +213,9 @@ class sarsa_lambda_agent(Agent):
 			print "Loaded."
 			return "message understood, loading policy"
 
-		return "SarsaLambdaAgent(Python) does not understand your message."
+		return "SampleSarsaAgent(Python) does not understand your message."
 
 
 
 if __name__=="__main__":
-	AgentLoader.loadAgent(sarsa_lambda_agent())
+	AgentLoader.loadAgent(sarsa_agent())

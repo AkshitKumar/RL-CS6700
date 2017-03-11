@@ -82,22 +82,25 @@ class puddle_world_environment(Environment):
 			return "Message understood. Turning Westerly Wind On"
 
 		if inMessage.startswith("set-goal-A"):
+			#self.set_map()
 			self.map[1][12] = 5
 			self.map[3][10] = 0
 			self.map[7][8] = 2
-			return "Message Understood. Goal set to position A"
+			return "Message understood. Goal set to position A"
 
 		if inMessage.startswith("set-goal-B"):
+			#self.set_map()
 			self.map[1][12] = 0
 			self.map[3][10] = 5
 			self.map[7][8] = 2
-			return "Message Understood. Goal set to position B"
+			return "Message understood. Goal set to position B"
 
 		if inMessage.startswith("set-goal-C"):
+			#self.set_map()
 			self.map[1][12] = 0
 			self.map[3][10] = 0
 			self.map[7][8] = 5
-			return "Message Understood. Goal set to position C"
+			return "Message understood. Goal set to position C"
 
 		if inMessage.startswith("print-state"):
 			self.printState()
