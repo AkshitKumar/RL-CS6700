@@ -14,7 +14,7 @@ class q_learning_agent(Agent):
 	lastAction = Action()
 	lastObservation = Observation()
 	q_learning_step_size = 0.1
-	q_learning_epsilon = 1.0
+	q_learning_epsilon = 0.1
 	q_learning_gamma = 0.9
 	numStates = 0
 	numActions = 0
@@ -37,7 +37,7 @@ class q_learning_agent(Agent):
 			assert not TaskSpec.isSpecial(TaskSpec.getIntActions()[0][0]), " expecting min action to be a number not a special value"
 			assert not TaskSpec.isSpecial(TaskSpec.getIntActions()[0][1]), " expecting max action to be a number not a special value"
 			self.numActions=TaskSpec.getIntActions()[0][1]+1;
-			
+			self.q_learning_gamma = TaskSpec.getDiscountFactor()
 			self.value_function=[self.numActions*[0.0] for i in range(self.numStates)]
 
 		else:
@@ -52,7 +52,6 @@ class q_learning_agent(Agent):
 		return self.value_function[state].index(max(self.value_function[state]))
 
 	def agent_start(self, observation):
-		#TODO : Need to complete this
 		theState = observation.intArray[0]
 		thisIntAction = self.egreedy(theState)
 		returnAction = Action()

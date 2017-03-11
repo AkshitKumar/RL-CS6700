@@ -51,7 +51,6 @@ class puddle_world_environment(Environment):
 		return returnObs
 		
 	def env_step(self,thisAction):
-		# Make sure the action is valid
 		assert len(thisAction.intArray) == 1,"Expected 1 integer action"
 		assert thisAction.intArray[0] >= 0, "Expected action to be in [0,3]"
 		assert thisAction.intArray[0] < 4, "Expected action to be in [0,3]"
@@ -72,7 +71,6 @@ class puddle_world_environment(Environment):
 		pass
 	
 	def env_message(self, inMessage):
-		# TODO : Need to understand the utility of this function and code it
 		if inMessage.startswith("wind-off"):
 			self.WESTERLY_WIND = False
 			return "Message understood. Turning Westerly Wind Off"
@@ -82,18 +80,22 @@ class puddle_world_environment(Environment):
 			return "Message understood. Turning Westerly Wind On"
 
 		if inMessage.startswith("set-goal-A"):
-			#self.set_map()
 			self.map[1][12] = 5
+			self.map[3][10] = 0 # Making other goal states as free
+			self.map[7][8] = 2 # Making other goal states as free
 			return "Message understood. Goal set to position A"
 
 		if inMessage.startswith("set-goal-B"):
-			#self.set_map()
-			self.map[3][10] = 5
+			self.map[1][12] = 0 # Making other goal states as free
+			self.map[3][10] = 5 # Making other goal states as free
+			self.map[7][8] = 2 
 			return "Message understood. Goal set to position B"
 
 		if inMessage.startswith("set-goal-C"):
-			#self.set_map()
+			self.map[1][12] = 0 # Making other goal states as free
+			self.map[3][10] = 0 # Making other goal states as free
 			self.map[7][8] = 5
+			self.WESTERLY_WIND = False 
 			return "Message understood. Goal set to position C"
 
 		if inMessage.startswith("print-state"):
@@ -121,7 +123,7 @@ class puddle_world_environment(Environment):
 		
 	def checkTerminal(self,row,col):
 		if(self.map[row][col] == self.WORLD_GOAL):
-			print "goal reached",self.count_to_goal
+			#print "goal reached",self.count_to_goal
 			return True
 		return False
 		 
@@ -194,9 +196,6 @@ class puddle_world_environment(Environment):
 		if self.print_state_flag:
 			self.printState()
 			time.sleep(0.2)
-
-		#self.printState()
-		#time.sleep(1)
 		
 
 	def calculateReward(self):
@@ -214,14 +213,9 @@ class puddle_world_environment(Environment):
 		numRows = len(self.map)
 		numCols = len(self.map[0])
 		print "Agent is at: "+str(self.agentRow)+","+str(self.agentCol)
-		# print "Columns:0-10                10-17"
-		# print "Col    ",
-		# for col in range(0,numCols):
-		# 	print col%10,
-			
+		
 		for row in range(0,numRows):
 			print
-			# print "Row: "+str(row)+" ",
 			for col in range(0,numCols):
 				if self.agentRow==row and self.agentCol==col:
 					print "A",
@@ -239,23 +233,6 @@ class puddle_world_environment(Environment):
 					if self.map[row][col] == self.WORLD_FREE:
 						print " ",
 		print
-
-	def setMap(self):
-		self.map = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,2,2,2,2,2,2,0,0,0,1],
-					[1,0,0,0,2,3,3,3,3,2,0,0,0,1],
-					[1,0,0,0,2,3,4,4,3,2,0,0,0,1],
-					[1,0,0,0,2,3,4,3,3,2,0,0,0,1],
-					[1,0,0,0,2,3,4,3,2,2,0,0,0,1],
-					[1,0,0,0,2,3,3,3,2,0,0,0,0,1],
-					[1,0,0,0,2,2,2,2,2,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
-
 
 if __name__=="__main__":
 	EnvironmentLoader.loadEnvironment(puddle_world_environment())
