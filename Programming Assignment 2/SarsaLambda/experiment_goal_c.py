@@ -30,15 +30,16 @@ def saveEvaluation(eval_return,eval_num_of_step,num,lambda_val):
 	eval_num_of_step = np.array(eval_num_of_step)
 	eval_return = np.array(eval_return)
 	np.save('eval_goal_c/eval_return_agent_' + str(num) + '_lambda_' + str(lambda_val),eval_return)
-	np.save('eval_goal_c/eval_num_steps_agent_' + str(num) '_lambda_' + str(lambda_val),eval_num_of_step)
+	np.save('eval_goal_c/eval_num_steps_agent_' + str(num) + '_lambda_' + str(lambda_val),eval_num_of_step)
 
 for i in range(len(goal_states)):
 	for index,lambda_val in enumerate(lambdas):
 		for j in range(num_of_agents):
 			RLGlue.RL_init()
 			RLGlue.RL_env_message("set-goal-" + goal_states[i])
+			RLGlue.RL_env_message("wind-off")
 			RLGlue.RL_agent_message("set_lambda " + str(lambda_val))
-			RLGlue.RL_agent_message("set-epsilon 0.55")
+			RLGlue.RL_agent_message("set-epsilon 0.75")
 			returns = []
 			num_steps = []
 			eval_return = []

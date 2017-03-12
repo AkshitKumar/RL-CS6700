@@ -30,7 +30,7 @@ def saveEvaluation(eval_return,eval_num_of_step,num,lambda_val):
 	eval_num_of_step = np.array(eval_num_of_step)
 	eval_return = np.array(eval_return)
 	np.save('eval_goal_a/eval_return_agent_' + str(num) + '_lambda_' + str(lambda_val),eval_return)
-	np.save('eval_goal_a/eval_num_steps_agent_' + str(num) '_lambda_' + str(lambda_val),eval_num_of_step)
+	np.save('eval_goal_a/eval_num_steps_agent_' + str(num) + '_lambda_' + str(lambda_val),eval_num_of_step)
 
 for i in range(len(goal_states)):
 	for index,lambda_val in enumerate(lambdas):
@@ -50,7 +50,7 @@ for i in range(len(goal_states)):
 				num_steps.append(RLGlue.RL_num_steps())
 				print 'Episode No: ' + str(episode + 1) + " Agent No: " + str(j + 1) + ' Goal :' + goal_states[i] + " Lambda : "+ str(lambda_val) + " Completed" + " Return : " + RLGlue.RL_env_message("Return") + "  Steps to Goal : " + RLGlue.RL_env_message("num_of_steps")
 				if episode == num_of_episode - 1:
-					RLGlue.RL_agent_message("save_policy result_goal_A_agent_" + str(j+1) + ".dat") # Save the value function for the agent
+					RLGlue.RL_agent_message("save_policy result_goal_A_agent_" + str(j+1) + "_lambda_" + str(lambda_val) + ".dat") # Save the value function for the agent
 			returns = np.array(returns)
 			num_steps = np.array(num_steps)		
 			np.save('returns_goal_a/return_' + 'agent_' + str(j) + '_lambda_' + str(lambda_val) + '_goal_' + goal_states[i],returns)
