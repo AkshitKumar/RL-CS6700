@@ -19,7 +19,7 @@ class sarsa_agent(Agent):
 	numStates = 0
 	numActions = 0
 	value_function = None
-	
+
 	numRows = 12
 	numCols = 12
 	theta = None
@@ -32,7 +32,7 @@ class sarsa_agent(Agent):
 
 	policyFrozen=False
 	exploringFrozen=False
-	
+
 	def agent_init(self,taskSpecString):
 		TaskSpec = TaskSpecVRLGLUE3.TaskSpecParser(taskSpecString)
 		if TaskSpec.valid:
@@ -49,38 +49,38 @@ class sarsa_agent(Agent):
 			self.numActions=TaskSpec.getIntActions()[0][1]+1;
 
 			self.sarsa_gamma = TaskSpec.getDiscountFactor();
-			
+
 			#self.value_function=[self.numActions*[0.0] for i in range(self.numStates)]
 			self.theta = np.zeros((self.numRows + self.numCols, self.numActions))
 			self.del_theta = np.zeros((self.numRows + self.numCols, self.numActions))
 
 		else:
 			print "Task Spec could not be parsed: "+taskSpecString;
-			
+
 		self.lastAction=Action()
 		self.lastObservation=Observation()
-		
+
 
 	def egreedy(self, state):
 		if not self.exploringFrozen and self.randGenerator.random()<self.sarsa_epsilon:
-			return self.randGenerator.randint(0,self.numActions-1)                
+			return self.randGenerator.randint(0,self.numActions-1)
 		#return self.value_function[state].index(max(self.value_function[state]))
 
 	def getRowCol(self,state):
-		col = state % (self.numCols + 2) 
+		col = state % (self.numCols + 2)
 		row = int(state / (self.numCols + 2))
 		return (row - 1,col - 1)
-	
+
 	def softmaxActionSelection(self,state):
 		(row, col) = self.getRowCol(state)
-		action_prob = np.exp((self.theta[row] + self.theta[col + self.numRows])/ self.temperature) 
+		action_prob = np.exp((self.theta[row] + self.theta[col + self.numRows])/ self.temperature)
 		prob = action_prob / np.sum(action_prob)
 		return np.random.choice(range(4), p = prob)
 
 	def softmax(self,theta):
 		return np.exp(theta)/np.sum(np.exp(theta))
-		
-	
+
+
 	def agent_start(self,observation):
 		self.del_theta[:,:] = 0
 		self.num_steps = 1
@@ -90,53 +90,53 @@ class sarsa_agent(Agent):
 		thisIntAction = self.softmaxActionSelection(theState)
 		returnAction = Action()
 		returnAction.intArray = [thisIntAction]
-		
+
 		self.lastAction=copy.deepcopy(returnAction)
 		self.lastObservation=copy.deepcopy(observation)
 
 		return returnAction
-	
+
 	def agent_step(self,reward, observation):
 		newState=observation.intArray[0]
 		lastState=self.lastObservation.intArray[0]
 		lastAction=self.lastAction.intArray[0]
 
 		newIntAction = self.softmaxActionSelection(newState)
-		
+
 		if not self.policyFrozen:
-			self.return_val += reward * pow(self.gamma,self.num_steps - 1) 
+			self.return_val += reward * pow(self.gamma,self.num_steps - 1)
 			self.num_steps += 1
 			(row,col) = self.getRowCol(lastState)
 			self.del_theta[row] += (-1/self.temperature) * self.softmax(self.del_theta[row]/self.temperature)
 			self.del_theta[col + self.numRows] += (-1/self.temperature) * self.softmax(self.del_theta[col + self.numRows]/self.temperature)
 			self.del_theta[row, lastAction] += 1/self.temperature
-			self.del_theta[col + self.numRows,lastAction] += 1/self.temperature 
+			self.del_theta[col + self.numRows,lastAction] += 1/self.temperature
 
 		returnAction=Action()
 		returnAction.intArray=[newIntAction]
-		
+
 		self.lastAction=copy.deepcopy(returnAction)
 		self.lastObservation=copy.deepcopy(observation)
 
 		return returnAction
-	
+
 	def agent_end(self,reward):
 		lastState=self.lastObservation.intArray[0]
 		lastAction=self.lastAction.intArray[0]
 
 		if not self.policyFrozen:
 			#self.value_function[lastState][lastAction]=new_Q_sa
-			self.return_val += reward * pow(self.gamma,self.num_steps - 1) 
+			self.return_val += reward * pow(self.gamma,self.num_steps - 1)
 			self.num_steps += 1
 			(row,col) = self.getRowCol(lastState)
 			self.del_theta[row] += (-1/self.temperature) * self.softmax(self.del_theta[row]/self.temperature)
 			self.del_theta[col + self.numRows] += (-1/self.temperature) * self.softmax(self.del_theta[col + self.numRows]/self.temperature)
 			self.del_theta[row, lastAction] += 1/self.temperature
-			self.del_theta[col + self.numRows,lastAction] += 1/self.temperature 
+			self.del_theta[col + self.numRows,lastAction] += 1/self.temperature
 
 			self.theta += self.stepsize * self.return_val * self.del_theta
 
-	
+
 	def agent_cleanup(self):
 		pass
 
@@ -161,15 +161,15 @@ class sarsa_agent(Agent):
 		theFile = open(fileName, "r")
 		self.theta = pickle.load(theFile)
 		theFile.close()
-	
+
 
 	def agent_message(self,inMessage):
-		
+
 		if inMessage.startswith("freeze learning"):
 			self.policyFrozen=True
 			return "message understood, policy frozen"
 
-		
+
 		if inMessage.startswith("unfreeze learning"):
 			self.policyFrozen=False
 			return "message understood, policy unfrozen"
@@ -179,12 +179,12 @@ class sarsa_agent(Agent):
 			self.exploringFrozen=True
 			return "message understood, exploring frozen"
 
-		
+
 		if inMessage.startswith("unfreeze exploring"):
 			self.exploringFrozen=False
 			return "message understood, exploring frozen"
 		'''
-		
+
 		if inMessage.startswith("save_policy"):
 			splitString=inMessage.split(" ");
 			#self.save_value_function(splitString[1]);

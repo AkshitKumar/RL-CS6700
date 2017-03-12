@@ -25,7 +25,7 @@ class puddle_world_environment(Environment):
 	num_steps = 0
 	Return = 0
 	gamma = 0.9
-	
+
 	def env_init(self):
 		self.map = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -42,7 +42,7 @@ class puddle_world_environment(Environment):
 					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
 					[1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
 		return "VERSION RL-Glue-3.0 PROBLEMTYPE episodic DISCOUNTFACTOR 0.9 OBSERVATIONS INTS (0 195) ACTIONS INTS (0 3) REWARDS (-3.0 10.0)"
-		
+
 	def env_start(self):
 		rnd = self.randGenerator.randint(0,len(self.startRows)-1)
 		self.startRow = self.startRows[rnd];
@@ -53,17 +53,17 @@ class puddle_world_environment(Environment):
 		self.count_to_goal = 0
 		self.Return = 0
 		return returnObs
-		
+
 	def env_step(self,thisAction):
 		assert len(thisAction.intArray) == 1,"Expected 1 integer action"
 		assert thisAction.intArray[0] >= 0, "Expected action to be in [0,3]"
 		assert thisAction.intArray[0] < 4, "Expected action to be in [0,3]"
-		
+
 		self.updatePosition(thisAction.intArray[0])
-		
+
 		theObs = Observation()
 		theObs.intArray = [self.calculateFlatState()]
-		
+
 		returnRO = Reward_observation_terminal()
 		returnRO.r = self.calculateReward()
 		returnRO.o = theObs
@@ -71,10 +71,10 @@ class puddle_world_environment(Environment):
 		self.Return += pow(self.gamma,self.count_to_goal) * self.calculateReward()
 		self.count_to_goal += 1
 		return returnRO
-	
+
 	def env_cleanup(self):
 		pass
-	
+
 	def env_message(self, inMessage):
 		if inMessage.startswith("wind-off"):
 			self.WESTERLY_WIND = False
@@ -93,14 +93,14 @@ class puddle_world_environment(Environment):
 		if inMessage.startswith("set-goal-B"):
 			self.map[1][12] = 0 # Making other goal states as free
 			self.map[3][10] = 5 # Making other goal states as free
-			self.map[7][8] = 2 
+			self.map[7][8] = 2
 			return "Message understood. Goal set to position B"
 
 		if inMessage.startswith("set-goal-C"):
 			self.map[1][12] = 0 # Making other goal states as free
 			self.map[3][10] = 0 # Making other goal states as free
 			self.map[7][8] = 5
-			self.WESTERLY_WIND = False 
+			self.WESTERLY_WIND = False
 			return "Message understood. Goal set to position C"
 
 		if inMessage.startswith("print-state"):
@@ -122,7 +122,7 @@ class puddle_world_environment(Environment):
 		self.agentRow = row
 		self.agentCol = col
 		return self.checkValid(row,col) and not self.checkTerminal(row,col)
-		
+
 	def checkValid(self,row,col):
 		valid = False
 		numRows = len(self.map)
@@ -131,20 +131,20 @@ class puddle_world_environment(Environment):
 			if self.map[row][col] != self.WORLD_OBSTACLE:
 				valid = True
 		return valid
-		
+
 	def checkTerminal(self,row,col):
 		if(self.map[row][col] == self.WORLD_GOAL):
 			#print "goal reached",self.count_to_goal
 			return True
 		return False
-		 
+
 	def checkCurrentTerminal(self):
 		return self.checkTerminal(self.agentRow,self.agentCol)
-		
+
 	def calculateFlatState(self):
 		numCols = len(self.map)
 		return self.agentRow * numCols + self.agentCol
-		
+
 	def updatePosition(self, theAction):
 		newRow = self.agentRow
 		newCol = self.agentCol
@@ -152,23 +152,23 @@ class puddle_world_environment(Environment):
 		if(theAction == 1): # Move left
 			if(rnd > 0.1):
 				newCol = self.agentCol - 1
-			elif(rnd < 0.1 / 3.0): 
+			elif(rnd < 0.1 / 3.0):
 				newCol = self.agentCol + 1
-			elif(rnd > 0.1 / 3.0 and rnd < 0.2 / 3.0): 
+			elif(rnd > 0.1 / 3.0 and rnd < 0.2 / 3.0):
 				newRow = self.agentRow + 1
-			elif(rnd > 0.2 / 3.0 and rnd < 0.1): 
+			elif(rnd > 0.2 / 3.0 and rnd < 0.1):
 				newRow = self.agentRow - 1
-			
+
 		if(theAction == 0): # Move Right
 			if(rnd > 0.1):
 				newCol = self.agentCol + 1
-			elif(rnd < 0.1 / 3.0): 
+			elif(rnd < 0.1 / 3.0):
 				newCol = self.agentCol - 1
-			elif(rnd > 0.1 / 3.0 and rnd < 0.2 / 3.0): 
+			elif(rnd > 0.1 / 3.0 and rnd < 0.2 / 3.0):
 				newRow = self.agentRow + 1
-			elif(rnd > 0.2 / 3.0 and rnd < 0.1): 
+			elif(rnd > 0.2 / 3.0 and rnd < 0.1):
 				newRow = self.agentRow - 1
-		
+
 		if(theAction == 2): # Move Down
 			if(rnd > 0.1):
 				newRow = self.agentRow + 1
@@ -178,7 +178,7 @@ class puddle_world_environment(Environment):
 				newCol = self.agentCol - 1
 			elif(rnd > 0.2 / 3.0 and rnd < 0.1):
 				newRow = self.agentRow - 1
-		
+
 		if(theAction == 3): # Move Up
 			if(rnd > 0.1):
 				newRow = self.agentRow - 1
@@ -188,8 +188,8 @@ class puddle_world_environment(Environment):
 				newCol = self.agentCol - 1
 			elif(rnd > 0.2 / 3.0 and rnd < 0.1): # Move left
 				newRow = self.agentRow + 1
-		
-		#print newRow - self.agentRow, newCol - self.agentCol	
+
+		#print newRow - self.agentRow, newCol - self.agentCol
 
 		'''
 		if(self.checkValid(newRow,newCol)):
@@ -207,7 +207,7 @@ class puddle_world_environment(Environment):
 		if self.print_state_flag:
 			self.printState()
 			time.sleep(0.2)
-		
+
 
 	def calculateReward(self):
 		if(self.map[self.agentRow][self.agentCol] == self.WORLD_GOAL):
@@ -224,7 +224,7 @@ class puddle_world_environment(Environment):
 		numRows = len(self.map)
 		numCols = len(self.map[0])
 		print "Agent is at: "+str(self.agentRow)+","+str(self.agentCol)
-		
+
 		for row in range(0,numRows):
 			print
 			for col in range(0,numCols):
