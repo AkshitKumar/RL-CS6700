@@ -22,6 +22,9 @@ class puddle_world_environment(Environment):
 	startRow = 6
 	startCol = 1
 	print_state_flag = False
+	num_steps = 0
+	Return = 0
+	gamma = 0.9
 	
 	def env_init(self):
 		self.map = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -48,10 +51,10 @@ class puddle_world_environment(Environment):
 		returnObs = Observation()
 		returnObs.intArray = [self.calculateFlatState()]
 		self.count_to_goal = 0
+		self.Return = 0
 		return returnObs
 		
 	def env_step(self,thisAction):
-		# Make sure the action is valid
 		assert len(thisAction.intArray) == 1,"Expected 1 integer action"
 		assert thisAction.intArray[0] >= 0, "Expected action to be in [0,3]"
 		assert thisAction.intArray[0] < 4, "Expected action to be in [0,3]"
@@ -65,6 +68,7 @@ class puddle_world_environment(Environment):
 		returnRO.r = self.calculateReward()
 		returnRO.o = theObs
 		returnRO.terminal = self.checkCurrentTerminal()
+		self.Return += pow(self.gamma,self.count_to_goal) * self.calculateReward()
 		self.count_to_goal += 1
 		return returnRO
 	
@@ -72,7 +76,6 @@ class puddle_world_environment(Environment):
 		pass
 	
 	def env_message(self, inMessage):
-		# TODO : Need to understand the utility of this function and code it
 		if inMessage.startswith("wind-off"):
 			self.WESTERLY_WIND = False
 			return "Message understood. Turning Westerly Wind Off"
@@ -83,21 +86,22 @@ class puddle_world_environment(Environment):
 
 		if inMessage.startswith("set-goal-A"):
 			self.map[1][12] = 5
-			self.map[3][10] = 0
-			self.map[7][8] = 2
-			return "Message Understood. Goal set to position A"
+			self.map[3][10] = 0 # Making other goal states as free
+			self.map[7][8] = 2 # Making other goal states as free
+			return "Message understood. Goal set to position A"
 
 		if inMessage.startswith("set-goal-B"):
-			self.map[1][12] = 0
-			self.map[3][10] = 5
-			self.map[7][8] = 2
-			return "Message Understood. Goal set to position B"
+			self.map[1][12] = 0 # Making other goal states as free
+			self.map[3][10] = 5 # Making other goal states as free
+			self.map[7][8] = 2 
+			return "Message understood. Goal set to position B"
 
 		if inMessage.startswith("set-goal-C"):
-			self.map[1][12] = 0
-			self.map[3][10] = 0
+			self.map[1][12] = 0 # Making other goal states as free
+			self.map[3][10] = 0 # Making other goal states as free
 			self.map[7][8] = 5
-			return "Message Understood. Goal set to position C"
+			self.WESTERLY_WIND = False 
+			return "Message understood. Goal set to position C"
 
 		if inMessage.startswith("print-state"):
 			self.printState()
@@ -106,6 +110,12 @@ class puddle_world_environment(Environment):
 		if inMessage.startswith("print-update-state"):
 			self.print_state_flag = True
 			return "Message understood. Printing state in update"
+
+		if inMessage.startswith("Return"):
+			return str(self.Return)
+
+		if inMessage.startswith("num_of_steps"):
+			return str(self.count_to_goal)
 
 
 	def setAgentState(self, row, col):
@@ -124,7 +134,7 @@ class puddle_world_environment(Environment):
 		
 	def checkTerminal(self,row,col):
 		if(self.map[row][col] == self.WORLD_GOAL):
-			print "goal reached",self.count_to_goal
+			#print "goal reached",self.count_to_goal
 			return True
 		return False
 		 
@@ -197,9 +207,6 @@ class puddle_world_environment(Environment):
 		if self.print_state_flag:
 			self.printState()
 			time.sleep(0.2)
-
-		#self.printState()
-		#time.sleep(1)
 		
 
 	def calculateReward(self):
@@ -217,14 +224,9 @@ class puddle_world_environment(Environment):
 		numRows = len(self.map)
 		numCols = len(self.map[0])
 		print "Agent is at: "+str(self.agentRow)+","+str(self.agentCol)
-		# print "Columns:0-10                10-17"
-		# print "Col    ",
-		# for col in range(0,numCols):
-		# 	print col%10,
-			
+		
 		for row in range(0,numRows):
 			print
-			# print "Row: "+str(row)+" ",
 			for col in range(0,numCols):
 				if self.agentRow==row and self.agentCol==col:
 					print "A",
@@ -242,23 +244,6 @@ class puddle_world_environment(Environment):
 					if self.map[row][col] == self.WORLD_FREE:
 						print " ",
 		print
-
-	def setMap(self):
-		self.map = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,2,2,2,2,2,2,0,0,0,1],
-					[1,0,0,0,2,3,3,3,3,2,0,0,0,1],
-					[1,0,0,0,2,3,4,4,3,2,0,0,0,1],
-					[1,0,0,0,2,3,4,3,3,2,0,0,0,1],
-					[1,0,0,0,2,3,4,3,2,2,0,0,0,1],
-					[1,0,0,0,2,3,3,3,2,0,0,0,0,1],
-					[1,0,0,0,2,2,2,2,2,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-					[1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
-
 
 if __name__=="__main__":
 	EnvironmentLoader.loadEnvironment(puddle_world_environment())
