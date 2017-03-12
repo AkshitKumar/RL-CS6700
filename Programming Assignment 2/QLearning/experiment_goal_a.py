@@ -14,7 +14,7 @@ def evaluateAgent(eval_return,eval_num_of_step):
 	RLGlue.RL_agent_message("freeze learning")
 	RLGlue.RL_agent_message("freeze exploring")
 	for i in range(0,n):
-		RLGlue.RL_episode(0)
+		RLGlue.RL_episode(5000)
 		calc_return += float(RLGlue.RL_env_message("Return"))
 		calc_num_steps += int(RLGlue.RL_env_message("num_of_steps"))
 		print "EVALUATION Episode : " + str(i) + " RETURN : " + RLGlue.RL_env_message("Return") + " STEPS : " + RLGlue.RL_env_message("num_of_steps")
